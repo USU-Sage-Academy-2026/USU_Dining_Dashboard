@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 import dj_database_url
 from dotenv import load_dotenv
 
@@ -116,11 +117,32 @@ STATIC_URL = 'static/'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
+email_host = os.getenv("EMAIL_HOST")
+email_backend_options = {}
+if email_host:
+    email_backend = "django.core.mail.backends.smtp.EmailBackend"
+    email_backend_options = {
+        "host": email_host,
+        "port": int(os.getenv("EMAIL_PORT", "587")),
+        "username": os.getenv("EMAIL_HOST_USER", ""),
+        "password": os.getenv("EMAIL_HOST_PASSWORD", ""),
+        "use_tls": os.getenv("EMAIL_USE_TLS", "true").lower() in {"1", "true", "yes"},
+        "use_ssl": os.getenv("EMAIL_USE_SSL", "false").lower() in {"1", "true", "yes"},
+        "timeout": 10,
+    }
+else:
+    email_backend = "django.core.mail.backends.console.EmailBackend"
+
 MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+    "default": {
+        "BACKEND": email_backend,
+        "OPTIONS": email_backend_options,
     },
 }
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    os.getenv("EMAIL_HOST_USER") or "webmaster@localhost",
+)
 DATABASES = {
     "default": dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
