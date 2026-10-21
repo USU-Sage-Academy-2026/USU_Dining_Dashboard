@@ -61,7 +61,7 @@ ROOT_URLCONF = 'USU_Dining_Dashboard.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        "DIRS": [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -138,3 +138,5 @@ DATABASES = {
         conn_max_age=600,
     )
 }
+
+LOGIN_REDIRECT_URL = "/"
