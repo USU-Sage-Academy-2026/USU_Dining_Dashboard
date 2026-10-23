@@ -84,6 +84,26 @@ class SignUpAndPasswordResetTests(TestCase):
         user = get_user_model().objects.get(username="newuser")
         self.assertEqual(user.email, "newuser@example.com")
 
+    def test_signup_does_not_require_email_address(self):
+        response = self.client.post(
+            reverse("signup"),
+            {
+                "username": "noemailuser",
+                "password1": "Safe-test-password-9021",
+                "password2": "Safe-test-password-9021",
+            },
+        )
+
+        self.assertRedirects(response, reverse("login"))
+        user = get_user_model().objects.get(username="noemailuser")
+        self.assertEqual(user.email, "")
+
+    def test_signup_page_does_not_render_email_field(self):
+        response = self.client.get(reverse("signup"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'name="email"')
+
     def test_password_reset_sends_email_to_registered_address(self):
         user = get_user_model().objects.create_user(
             username="resetuser",

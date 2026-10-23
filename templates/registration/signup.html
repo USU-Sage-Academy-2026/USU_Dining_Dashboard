@@ -4,10 +4,195 @@
 {% block title %}Sign Up{% endblock %}
 
 {% block content %}
-<h2>Sign up</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form }}
-  <button type="submit">Sign Up</button>
-</form>
+<style>
+  body {
+    min-height: 100vh;
+    margin: 0;
+    background: #f3f4f6;
+    color: #1f2937;
+    font-family: system-ui, sans-serif;
+  }
+
+  body > main {
+    min-height: 100vh;
+  }
+
+  .signup-page {
+    box-sizing: border-box;
+    display: grid;
+    min-height: 100vh;
+    padding: 24px;
+    place-items: center;
+    background: #f3f4f6;
+  }
+
+  .signup-card {
+    box-sizing: border-box;
+    width: min(100%, 480px);
+    padding: 40px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+  }
+
+  .signup-brand {
+    margin: 0 0 28px;
+    color: #0f2439;
+    font-size: 0.85rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .signup-card h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    letter-spacing: -0.04em;
+  }
+
+  .signup-intro {
+    margin: 10px 0 28px;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .signup-error,
+  .signup-field-error {
+    color: #a32d2d;
+    font-size: 0.9rem;
+  }
+
+  .signup-error {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border: 1px solid #f1caca;
+    border-radius: 9px;
+    background: #fff7f7;
+  }
+
+  .signup-field {
+    margin-bottom: 18px;
+  }
+
+  .signup-field label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 0.9rem;
+    font-weight: 650;
+  }
+
+  .signup-field input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px 13px;
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+    background: #fff;
+    color: #1f2937;
+    font: inherit;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .signup-field input:focus {
+    border-color: #0f2439;
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(15 36 57 / 14%);
+  }
+
+  .signup-field-help {
+    margin: 6px 0 0;
+    color: #6b7280;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .signup-field-help ul {
+    margin: 6px 0 0;
+    padding-left: 18px;
+  }
+
+  .signup-field-error {
+    margin: 6px 0 0;
+  }
+
+  .signup-submit {
+    width: 100%;
+    margin-top: 6px;
+    padding: 13px 16px;
+    border: 0;
+    border-radius: 9px;
+    background: #0f2439;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    transition: background 150ms ease, transform 150ms ease;
+  }
+
+  .signup-submit:hover {
+    transform: translateY(-1px);
+    background: #193b5a;
+  }
+
+  .signup-submit:focus-visible,
+  .signup-links a:focus-visible {
+    outline: 3px solid #6b7280;
+    outline-offset: 3px;
+  }
+
+  .signup-links {
+    margin: 22px 0 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  .signup-links a {
+    color: #0f2439;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .signup-links a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 480px) {
+    .signup-card {
+      padding: 30px 24px;
+    }
+  }
+</style>
+
+<section class="signup-page">
+  <div class="signup-card">
+    <p class="signup-brand">USU Dining Dashboard</p>
+    <h1>Create account</h1>
+    <p class="signup-intro">Sign up to access the dining dashboard.</p>
+
+    <form method="post">
+      {% csrf_token %}
+      {% for hidden_field in form.hidden_fields %}{{ hidden_field }}{% endfor %}
+      {% if form.non_field_errors %}
+      <div class="signup-error" role="alert">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+      {% endif %}
+      {% for field in form.visible_fields %}
+      {% if field.name != "email" %}
+      <div class="signup-field">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<div class="signup-field-help">{{ field.help_text }}</div>{% endif %}
+        {% for error in field.errors %}<p class="signup-field-error" role="alert">{{ error }}</p>{% endfor %}
+      </div>
+      {% endif %}
+      {% endfor %}
+      <button class="signup-submit" type="submit">Sign up</button>
+    </form>
+
+    <p class="signup-links">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+  </div>
+</section>
 {% endblock %}

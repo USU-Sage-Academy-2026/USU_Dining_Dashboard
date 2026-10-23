@@ -5,13 +5,16 @@ from django.core.exceptions import ValidationError
 
 
 class SignUpForm(UserCreationForm):
-    email = forms.EmailField(required=True)
+    email = forms.EmailField(required=False)
 
     class Meta(UserCreationForm.Meta):
         fields = ("username", "email")
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip()
+        if not email:
+            return email
+
         user_model = get_user_model()
         if user_model.objects.filter(email__iexact=email).exists():
             raise ValidationError(

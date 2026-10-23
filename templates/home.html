@@ -4,17 +4,131 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
+<style>
+  body {
+    min-height: 100vh;
+    margin: 0;
+    background: #f3f4f6;
+    color: #1f2937;
+    font-family: system-ui, sans-serif;
+  }
+
+  body > main {
+    min-height: 100vh;
+  }
+
+  .home-page {
+    box-sizing: border-box;
+    display: grid;
+    min-height: 100vh;
+    padding: 24px;
+    place-items: center;
+    background: #f3f4f6;
+  }
+
+  .home-card {
+    box-sizing: border-box;
+    width: min(100%, 520px);
+    padding: 40px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+  }
+
+  .home-brand {
+    margin: 0 0 28px;
+    color: #0f2439;
+    font-size: 0.85rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .home-card h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    letter-spacing: -0.04em;
+  }
+
+  .home-message {
+    margin: 10px 0 28px;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .home-button {
+    display: inline-flex;
+    box-sizing: border-box;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    border: 1px solid #0f2439;
+    border-radius: 9px;
+    background: #0f2439;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 650;
+    text-decoration: none;
+    transition: background 150ms ease, transform 150ms ease;
+  }
+
+  .home-button:hover {
+    transform: translateY(-1px);
+    background: #193b5a;
+  }
+
+  .home-button-secondary {
+    background: #fff;
+    color: #0f2439;
+  }
+
+  .home-button-secondary:hover {
+    background: #f3f4f6;
+  }
+
+  .home-button:focus-visible {
+    outline: 3px solid #6b7280;
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 480px) {
+    .home-card {
+      padding: 30px 24px;
+    }
+
+    .home-actions {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<section class="home-page">
+  <div class="home-card">
+    <p class="home-brand">USU Dining Dashboard</p>
 {% if user.is_authenticated %}
-<p>Hi {{ user.username }}!</p>
-<!--<p><a href="{% url 'password_reset' %}">Password Reset</a></p>--> <!--Dosn't work for some reason-->
-<form action="{% url 'logout' %}" method="post">
-  {% csrf_token %}
-  <button type="submit">Log Out</button>
-</form>
+    <h1>Welcome, {{ user.username }}</h1>
+    <p class="home-message">You're signed in to your dining account.</p>
+    <form class="home-actions" action="{% url 'logout' %}" method="post">
+      {% csrf_token %}
+      <button class="home-button" type="submit">Log out</button>
+    </form>
 {% else %}
-<p>You are not logged in</p>
-<!--<p><a href="{% url 'password_reset' %}">Password Reset</a></p>--> <!--Dosn't work for some reason-->
-<p><a href="{% url 'login' %}">Log In</a></p>
-<p><a href="{% url 'signup' %}">Sign Up</a></p>
+    <h1>Welcome</h1>
+    <p class="home-message">Sign in or create an account to access the dining dashboard.</p>
+    <div class="home-actions">
+      <a class="home-button" href="{% url 'login' %}">Log in</a>
+      <a class="home-button home-button-secondary" href="{% url 'signup' %}">Sign up</a>
+    </div>
 {% endif %}
+  </div>
+</section>
 {% endblock %}
