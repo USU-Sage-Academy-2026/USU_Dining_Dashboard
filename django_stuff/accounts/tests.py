@@ -17,6 +17,22 @@ from django.urls import reverse
     }
 )
 class SignUpAndPasswordResetTests(TestCase):
+    def test_home_shows_dashboard_button_only_to_authenticated_users(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertNotContains(response, "View dashboard")
+
+        user = get_user_model().objects.create_user(
+            username="homeuser",
+            password="Safe-test-password-9021",
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, "View dashboard")
+        self.assertContains(response, reverse("dashboard"))
+
     def test_dashboard_renders_frontend_build(self):
         user = get_user_model().objects.create_user(
             username="dashboarduser",
