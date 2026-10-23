@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Sidebar from "../components/Sidebar";
+import DiningCharts from "../components/Diningcharts";
 import "./Dashboard.css";
 
 const allData = [
@@ -73,6 +74,8 @@ export default function Dashboard() {
             </div>
           ))}
         </section>
+
+        <DiningCharts />
 
         <footer className="dashboard-findings">
           <h2>Key findings</h2>
