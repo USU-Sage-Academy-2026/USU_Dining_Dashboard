@@ -1,3 +1,8 @@
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.test import TestCase, override_settings
@@ -12,6 +17,58 @@ from django.urls import reverse
     }
 )
 class SignUpAndPasswordResetTests(TestCase):
+    def test_dashboard_renders_frontend_build(self):
+        user = get_user_model().objects.create_user(
+            username="dashboarduser",
+            password="Safe-test-password-9021",
+        )
+        self.client.force_login(user)
+
+        with TemporaryDirectory() as temp_dir:
+            manifest_path = Path(temp_dir) / "manifest.json"
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "index.html": {
+                            "file": "assets/index.js",
+                            "css": ["assets/index.css"],
+                        }
+                    }
+                )
+            )
+            with patch("myproject.views.FRONTEND_MANIFEST_PATH", manifest_path):
+                response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="root"')
+        self.assertContains(response, "/static/frontend/assets/index.js")
+        self.assertContains(response, "/static/frontend/assets/index.css")
+
+    def test_dashboard_redirects_anonymous_users_to_login(self):
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertRedirects(
+            response,
+            f"{reverse('login')}?next={reverse('dashboard')}",
+            fetch_redirect_response=False,
+        )
+
+    def test_login_redirects_to_dashboard(self):
+        get_user_model().objects.create_user(
+            username="dashboarduser",
+            password="Safe-test-password-9021",
+        )
+
+        response = self.client.post(
+            reverse("login"),
+            {
+                "username": "dashboarduser",
+                "password": "Safe-test-password-9021",
+            },
+        )
+
+        self.assertRedirects(response, reverse("dashboard"), fetch_redirect_response=False)
+
     def test_signup_saves_email_address(self):
         response = self.client.post(
             reverse("signup"),
