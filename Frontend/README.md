@@ -1,5 +1,20 @@
 # React + Vite
 
+## Serving through Django
+
+From the repository root, build the frontend before starting the Django server:
+
+```sh
+cd Frontend
+npm ci
+npm run build
+cd ../django_stuff
+python manage.py runserver 127.0.0.1:8000
+```
+
+The build is written to Django's static files and the dashboard is available at
+`http://127.0.0.1:8000/dashboard/`.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

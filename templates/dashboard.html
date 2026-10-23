@@ -1,0 +1,16 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>USU Dining Dashboard</title>
+    {% for stylesheet in dashboard_stylesheets %}
+    <link rel="stylesheet" href="{% static stylesheet %}">
+    {% endfor %}
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="{% static dashboard_script %}"></script>
+  </body>
+</html>
