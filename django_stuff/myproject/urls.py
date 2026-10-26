@@ -17,8 +17,7 @@ Including another URLconf
 # django_project/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import TemplateView  # new
-from .views import dashboard
+from .views import dashboard, home
 
 urlpatterns = [
     path("admin/", admin.site.urls),

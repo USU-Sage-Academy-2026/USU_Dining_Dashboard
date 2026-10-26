@@ -17,10 +17,11 @@ from django.urls import reverse
     }
 )
 class SignUpAndPasswordResetTests(TestCase):
-    def test_home_shows_dashboard_button_only_to_authenticated_users(self):
+    def test_home_redirects_authenticated_users_to_dashboard(self):
         response = self.client.get(reverse("home"))
 
         self.assertNotContains(response, "View dashboard")
+        self.assertEqual(response.status_code, 200)
 
         user = get_user_model().objects.create_user(
             username="homeuser",
@@ -30,8 +31,11 @@ class SignUpAndPasswordResetTests(TestCase):
 
         response = self.client.get(reverse("home"))
 
-        self.assertContains(response, "View dashboard")
-        self.assertContains(response, reverse("dashboard"))
+        self.assertRedirects(
+            response,
+            reverse("dashboard"),
+            fetch_redirect_response=False,
+        )
 
     def test_dashboard_renders_frontend_build(self):
         user = get_user_model().objects.create_user(
