@@ -117,10 +117,13 @@
 {% if user.is_authenticated %}
     <h1>Welcome, {{ user.username }}</h1>
     <p class="home-message">You're signed in to your dining account.</p>
-    <form class="home-actions" action="{% url 'logout' %}" method="post">
+    <div class="home-actions">
+      <a class="home-button" href="{% url 'dashboard' %}">View dashboard</a>
+      <form action="{% url 'logout' %}" method="post">
       {% csrf_token %}
-      <button class="home-button" type="submit">Log out</button>
-    </form>
+        <button class="home-button home-button-secondary" type="submit">Log out</button>
+      </form>
+    </div>
 {% else %}
     <h1>Welcome</h1>
     <p class="home-message">Sign in or create an account to access the dining dashboard.</p>

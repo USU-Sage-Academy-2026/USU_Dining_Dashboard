@@ -13,7 +13,7 @@ const allData = [
 
 const restaurantNames = allData.map((r) => r.name);
 
-export default function Dashboard() {
+export default function Dashboard({ isAdmin }) {
   const [selected, setSelected] = useState(restaurantNames);
   const [orderMethod, setOrderMethod] = useState("all");
 
@@ -127,6 +127,16 @@ export default function Dashboard() {
 
       <main className="dashboard">
         <header className="dashboard-header">
+          <nav className="dashboard-actions" aria-label="Account actions">
+            {isAdmin && (
+              <a className="dashboard-action" href="/admin/">
+                Admin
+              </a>
+            )}
+            <button className="dashboard-action" type="submit" form="logout-form">
+              Log out
+            </button>
+          </nav>
           <h1>USU Dining Dashboard</h1>
           <p>Order times across campus restaurants</p>
         </header>

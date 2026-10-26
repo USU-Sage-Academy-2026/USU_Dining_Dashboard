@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-dist-min';
-import DateRangeSlider from './DateRangeSlider';
-import { ALL_DAYS, RESTAURANTS, getOrderData } from './fakeData';
-import './DiningCharts.css';
+import DateRangeSlider from './Daterangeslider';
+import { ALL_DAYS, RESTAURANTS, getOrderData } from './Fakedata';
+import './Diningcharts.css';
 
 const Plot = createPlotlyComponent(Plotly);
 const COLORS = ['#0F2439', '#2E7DB5', '#E08A00'];

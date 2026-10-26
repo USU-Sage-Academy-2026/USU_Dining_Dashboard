@@ -10,7 +10,10 @@
     {% endfor %}
   </head>
   <body>
-    <div id="root"></div>
+    <form id="logout-form" action="{% url 'logout' %}" method="post" hidden>
+      {% csrf_token %}
+    </form>
+    <div id="root" data-is-admin="{{ request.user.is_staff|yesno:'true,false' }}"></div>
     <script type="module" src="{% static dashboard_script %}"></script>
   </body>
 </html>
