@@ -1,19 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import Chart from 'chart.js/auto';
-import DateRangeSlider from './DateRangeSlider';
-import { ALL_DAYS, RESTAURANTS, getOrderData } from './fakeData';
-import './DiningCharts.css';
+import 'chart.js/auto';
+import { Line, Bar } from 'react-chartjs-2';
+import DateRangeSlider from './Daterangeslider';
+import { ALL_DAYS, RESTAURANTS, getOrderData } from './Fakedata';
+import './Diningcharts.css';
 
-const Plot = createPlotlyComponent(Plotly);
 const COLORS = ['#0F2439', '#2E7DB5', '#E08A00'];
 const LAST = ALL_DAYS.length - 1;
-
-const baseLayout = {
-  margin: { t: 10, r: 10, b: 50, l: 55 },
-  legend: { orientation: 'h', y: -0.3 },
-  paper_bgcolor: 'rgba(0,0,0,0)',
-  plot_bgcolor: 'rgba(0,0,0,0)',
-};
 
 export default function DiningCharts() {
   // One shared range for every chart. Default: the most recent 7 days.
@@ -33,41 +26,106 @@ export default function DiningCharts() {
         setLoading(false);
       }
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [start, end]);
 
-  // Average bump time by hour. Weighted by order count so a busy hour
-  // counts more than a quiet one (a plain average of averages would be wrong).
-  const bumpTraces = useMemo(
-    () => RESTAURANTS.map((name, i) => {
-      const byHour = {};
-      rows.filter((r) => r.restaurant === name).forEach((r) => {
-        const h = (byHour[r.hour] ??= { orders: 0, weighted: 0 });
-        h.orders += r.orders;
-        h.weighted += r.orders * r.bumpMinutes;
-      });
-      const hours = Object.keys(byHour).map(Number).sort((a, b) => a - b);
-      return {
-        x: hours,
-        y: hours.map((h) => byHour[h].weighted / byHour[h].orders),
-        type: 'scatter', mode: 'lines+markers', name, line: { color: COLORS[i] },
-      };
-    }),
-    [rows],
-  );
+  // 1. Average bump time by hour (Chart.js Line Chart format)
+  const bumpChartData = useMemo(() => {
+    // Collect all unique hours across all restaurants in sorted order
+    const hours = Array.from(new Set(rows.map((r) => r.hour)))
+      .map(Number)
+      .sort((a, b) => a - b);
 
-  // Order volume by day, stacked by restaurant.
-  const volumeTraces = useMemo(
-    () => RESTAURANTS.map((name, i) => {
+    const datasets = RESTAURANTS.map((name, i) => {
+      const byHour = {};
+      rows
+        .filter((r) => r.restaurant === name)
+        .forEach((r) => {
+          const h = (byHour[r.hour] ??= { orders: 0, weighted: 0 });
+          h.orders += r.orders;
+          h.weighted += r.orders * r.bumpMinutes;
+        });
+
+      return {
+        label: name,
+        data: hours.map((h) =>
+          byHour[h] ? +(byHour[h].weighted / byHour[h].orders).toFixed(2) : null
+        ),
+        borderColor: COLORS[i],
+        backgroundColor: COLORS[i],
+        tension: 0.2,
+        spanGaps: true,
+      };
+    });
+
+    return {
+      labels: hours,
+      datasets,
+    };
+  }, [rows]);
+
+  // 2. Order volume by day, stacked by restaurant (Chart.js Bar Chart format)
+  const volumeChartData = useMemo(() => {
+    // Collect all unique dates across all restaurants in sorted order
+    const days = Array.from(new Set(rows.map((r) => r.date))).sort();
+
+    const datasets = RESTAURANTS.map((name, i) => {
       const byDay = {};
-      rows.filter((r) => r.restaurant === name).forEach((r) => {
-        byDay[r.date] = (byDay[r.date] || 0) + r.orders;
-      });
-      const days = Object.keys(byDay).sort();
-      return { x: days, y: days.map((d) => byDay[d]), type: 'bar', name, marker: { color: COLORS[i] } };
-    }),
-    [rows],
-  );
+      rows
+        .filter((r) => r.restaurant === name)
+        .forEach((r) => {
+          byDay[r.date] = (byDay[r.date] || 0) + r.orders;
+        });
+
+      return {
+        label: name,
+        data: days.map((d) => byDay[d] || 0),
+        backgroundColor: COLORS[i],
+      };
+    });
+
+    return {
+      labels: days,
+      datasets,
+    };
+  }, [rows]);
+
+  // Chart.js configuration for the Line Chart
+  const bumpOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom' },
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Hour of day (24h)' },
+      },
+      y: {
+        title: { display: true, text: 'Minutes' },
+      },
+    },
+  };
+
+  // Chart.js configuration for the Stacked Bar Chart
+  const volumeOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom' },
+    },
+    scales: {
+      x: {
+        stacked: true,
+      },
+      y: {
+        stacked: true,
+        title: { display: true, text: 'Orders' },
+      },
+    },
+  };
 
   return (
     <section className="dining-charts">
@@ -80,23 +138,15 @@ export default function DiningCharts() {
         <div className={loading ? 'charts is-loading' : 'charts'}>
           <div>
             <h3>Average bump time by hour</h3>
-            <Plot
-              data={bumpTraces}
-              layout={{ ...baseLayout, xaxis: { title: 'Hour of day (24h)', dtick: 1 }, yaxis: { title: 'Minutes' } }}
-              useResizeHandler
-              style={{ width: '100%', height: 320 }}
-              config={{ displayModeBar: false }}
-            />
+            <div style={{ width: '100%', height: 320 }}>
+              <Line data={bumpChartData} options={bumpOptions} />
+            </div>
           </div>
           <div>
             <h3>Order volume by day</h3>
-            <Plot
-              data={volumeTraces}
-              layout={{ ...baseLayout, barmode: 'stack', xaxis: { type: 'category' }, yaxis: { title: 'Orders' } }}
-              useResizeHandler
-              style={{ width: '100%', height: 320 }}
-              config={{ displayModeBar: false }}
-            />
+            <div style={{ width: '100%', height: 320 }}>
+              <Bar data={volumeChartData} options={volumeOptions} />
+            </div>
           </div>
         </div>
       )}
