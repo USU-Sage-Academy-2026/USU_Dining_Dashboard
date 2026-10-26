@@ -3,12 +3,18 @@ from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 
 FRONTEND_MANIFEST_PATH = (
     Path(__file__).resolve().parent.parent / "static/frontend/.vite/manifest.json"
 )
+
+
+def home(request):
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+    return render(request, "home.html")
 
 
 @login_required
