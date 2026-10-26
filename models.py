@@ -39,7 +39,7 @@ class Quarter(models.Model):
         managed = False
         db_table = 'Quarter'
 
-class KioskOrders(models.Model):
+class Combined_Orders(models.Model):
     period_id = models.IntegerField(db_column='Period_ID', primary_key=True)  # Field name made lowercase.
     restaurant = models.ForeignKey('Restaurant', models.DO_NOTHING, db_column='Restaurant_ID', blank=True, null=True)  # Field namemade lowercase.
     order_method = models.ForeignKey('OrderMethod', models.DO_NOTHING, db_column='Order_Method', blank=True, null=True)  # Field name made lowercase.
@@ -55,20 +55,3 @@ class KioskOrders(models.Model):
     class Meta:
         managed = False
         db_table = 'Kiosk_Orders'
-
-
-class MobileOrders(models.Model):
-    period_id = models.IntegerField(db_column='Period_ID', primary_key=True)  # Field name made lowercase.
-    restaurant = models.ForeignKey('Restaurant', models.DO_NOTHING, db_column='Restaurant_ID', blank=True, null=True)  # Field namemade lowercase.
-    order_method = models.ForeignKey('OrderMethod', models.DO_NOTHING, db_column='Order_Method', blank=True, null=True)  # Field name made lowercase.
-    date = models.DateField(db_column='Date', blank=True, null=True)  # Field name made lowercase.
-    time_period_hour = models.ForeignKey(Hour, models.DO_NOTHING,db_column='Time_Period_Hour', blank=True, null=True)  # Field name made lowercase.
-    time_period_quarter = models.ForeignKey('Quarter', models.DO_NOTHING, db_column='Time_Period_Quarter', blank=True, null=True)  # Field name made lowercase.
-    number_of_orders = models.IntegerField(db_column='Number_Of_Orders', blank=True, null=True)  # Field name made lowercase.
-    low_bump = models.DecimalField(db_column='Low_Bump', max_digits=6, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
-    high_bump = models.DecimalField(db_column='High_Bump', max_digits=6, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
-    avg_bump_time = models.DecimalField(db_column='Avg_Bump_Time', max_digits=6, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
-
-    class Meta:
-        managed = False
-        db_table = 'Mobile_Orders'
