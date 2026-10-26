@@ -13,7 +13,14 @@ const allData = [
 
 const restaurantNames = allData.map((r) => r.name);
 
-export default function Dashboard() {
+function getCsrfToken() {
+  const csrfCookie = document.cookie
+    .split("; ")
+    .find((cookie) => cookie.startsWith("csrftoken="));
+  return csrfCookie ? decodeURIComponent(csrfCookie.slice("csrftoken=".length)) : "";
+}
+
+export default function Dashboard({ isAdmin = false }) {
   const [selected, setSelected] = useState(restaurantNames);
   const [orderMethod, setOrderMethod] = useState("all");
 
@@ -127,6 +134,23 @@ export default function Dashboard() {
 
       <main className="dashboard">
         <header className="dashboard-header">
+          <nav className="dashboard-actions" aria-label="Account actions">
+            {isAdmin && (
+              <a className="dashboard-logout-button" href="/admin/">
+                Admin
+              </a>
+            )}
+            <form className="dashboard-logout" action="/accounts/logout/" method="post">
+              <input
+                type="hidden"
+                name="csrfmiddlewaretoken"
+                value={getCsrfToken()}
+              />
+              <button className="dashboard-logout-button" type="submit">
+                Log out
+              </button>
+            </form>
+          </nav>
           <h1>USU Dining Dashboard</h1>
           <p>Order times across campus restaurants</p>
         </header>

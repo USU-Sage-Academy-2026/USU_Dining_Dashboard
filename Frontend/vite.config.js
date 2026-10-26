@@ -10,9 +10,14 @@ export default defineConfig({
     emptyOutDir: true,
     manifest: true,
   },
-   server: {
+  server: {
     proxy: {
-      '/api': 'http://127.0.0.1:8000',
+      '^/$': 'http://localhost:8000',
+      '/accounts': 'http://localhost:8000',
+      '/admin': 'http://localhost:8000',
+      '/dashboard': 'http://localhost:8000',
+      '/static': 'http://localhost:8000',
+      '/api': 'http://localhost:8000',
     },
   },
 })
