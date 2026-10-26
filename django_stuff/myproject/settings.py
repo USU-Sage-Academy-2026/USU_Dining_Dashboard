@@ -145,9 +145,10 @@ DEFAULT_FROM_EMAIL = os.getenv(
     os.getenv("EMAIL_HOST_USER") or "webmaster@localhost",
 )
 DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+    "default": dj_database_url.parse(
+        os.environ["DATABASE_URL"],
         conn_max_age=600,
+        ssl_require=True,
     )
 }
 
