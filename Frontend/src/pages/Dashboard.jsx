@@ -1,5 +1,7 @@
-import { useState } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import Sidebar from "../components/Sidebar";
+import Chart from "chart.js/auto";
 import "./Dashboard.css";
 
 const allData = [
@@ -14,6 +16,72 @@ export default function Dashboard() {
   const [selected, setSelected] = useState(restaurantNames);
   const [orderMethod, setOrderMethod] = useState("all");
 
+  // --- Database memory ---
+  const [neonData, setNeonData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
+
+  // --- Ticket calculations---
+  useEffect(() => {
+    fetch("http://localhost:5000/api/ticket-hours")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setError(data.error);
+        } else {
+          setNeonData(data);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  // --- Chart.js render ---
+  useEffect(() => {
+    if (!neonData || !chartRef.current) return;
+
+    // Destroys old charts during hot-reloads to avoid drawing glitches
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    const ctx = chartRef.current.getContext("2d");
+    chartInstance.current = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: neonData.labels, 
+        datasets: [
+          {
+            label: "Avg Bump Time (Minutes)",
+            data: neonData.values,
+            borderColor: "rgb(54, 162, 235)",
+            backgroundColor: "rgba(54, 162, 235, 0.2)",
+            tension: 0.3,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: "Minutes" } },
+          x: { title: { display: true, text: "Hour of Day" } },
+        },
+      },
+    });
+
+    return () => {
+      if (chartInstance.current) chartInstance.current.destroy();
+    };
+  }, [neonData]);
+
+  // --- Your Existing Filtering Logic ---
   function toggleRestaurant(name) {
     setSelected((current) =>
       current.includes(name)
@@ -45,7 +113,7 @@ export default function Dashboard() {
     : null;
 
   const totalOrders = visible.reduce((sum, r) => sum + r.orders, 0);
-  
+
   return (
     <div className="dashboard-layout">
       <Sidebar
@@ -61,6 +129,16 @@ export default function Dashboard() {
           <h1>USU Dining Dashboard</h1>
           <p>Order times across campus restaurants</p>
         </header>
+
+        {/* Main Graph Section */}
+        <section className="dashboard-chart-box" style={{ background: "white", padding: "20px", borderRadius: "8px", marginBottom: "25px", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" }}>
+          <h2 style={{ fontSize: "1.2rem", color: "#333", marginBottom: "15px", fontFamily: "sans-serif" }}>Mobile Orders: Bump Time By Hour</h2>
+          <div className="chart-wrapper" style={{ position: "relative", height: "300px", width: "100%" }}>
+            {loading && <p style={{ textAlign: "center", padding: "40px", color: "#666" }}>Fetching your Neon database fields...</p>}
+            {error && <p style={{ color: "#ff4d4d", textAlign: "center", padding: "40px" }}>Connection Error: {error}</p>}
+            {!loading && !error && <canvas ref={chartRef}></canvas>}
+          </div>
+        </section>
 
         <section className="dashboard-cards">
           {visible.map((r) => (
