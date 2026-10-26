@@ -25,7 +25,7 @@ def get_ticket_hours():
             SELECT 
                 h."Hour" AS hour_of_day,
                 ROUND(AVG(o."Avg_Bump_Time"), 1) AS avg_time
-            FROM public."Mobile_Orders" o
+            FROM public."Combined_Orders" o
             JOIN public."Hour" h ON o."Time_Period_Hour" = h."Hour"
             GROUP BY h."Hour"
             ORDER BY h."Hour";
