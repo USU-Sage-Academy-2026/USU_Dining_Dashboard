@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import createPlotlyComponent from 'react-plotly.js/factory';
-import Plotly from 'plotly.js-dist-min';
+import Chart from 'chart.js/auto';
 import DateRangeSlider from './DateRangeSlider';
 import { ALL_DAYS, RESTAURANTS, getOrderData } from './fakeData';
 import './DiningCharts.css';
