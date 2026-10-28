@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import DiningCharts from "../components/Diningcharts";
@@ -11,10 +10,19 @@ const allData = [
   { name: "Restaurant C", avgBumpTime: 3.1, kiosk: 120, mobile: 90 },
 ];
 
-const restaurantNames = allData.map((r) => r.name);
+const defaultRestaurants = allData.map((r) => r.name);
 
-export default function Dashboard() {
-  const [selected, setSelected] = useState(restaurantNames);
+// Helper function so the Django logout form doesn't crash
+function getCsrfToken() {
+  const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
+// 1. Added { isAdmin } prop here so line 125 doesn't crash
+export default function Dashboard({ isAdmin = false }) {
+  // 2. Added the missing restaurantNames state!
+  const [restaurantNames, setRestaurantNames] = useState(defaultRestaurants);
+  const [selected, setSelected] = useState(defaultRestaurants);
   const [orderMethod, setOrderMethod] = useState("all");
 
   // --- Database memory ---
@@ -24,21 +32,29 @@ export default function Dashboard() {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
 
-    // --- Restaurant names from the database ---
+  // --- Restaurant names from the database ---
   useEffect(() => {
     fetch("/api/order-meta/")
-      .then((res) => res.json())
-      .then((meta) => {
-        setRestaurantNames(meta.restaurants);
-        setSelected(meta.restaurants); // start with every restaurant ticked
+      .then((res) => {
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        return res.json();
       })
-      .catch((err) => console.error(err));
+      .then((meta) => {
+        if (Array.isArray(meta?.restaurants) && meta.restaurants.length > 0) {
+          setRestaurantNames(meta.restaurants);
+          setSelected(meta.restaurants); // start with every restaurant ticked
+        }
+      })
+      .catch((err) => console.error("order-meta fetch error:", err));
   }, []);
 
-  // --- Ticket calculations---
+  // --- Ticket calculations ---
   useEffect(() => {
-    fetch("http://localhost:5000/api/ticket-hours")
-      .then((res) => res.json())
+    fetch("/api/ticket-hours/")
+      .then((res) => {
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
         if (data.error) {
           setError(data.error);
@@ -66,7 +82,7 @@ export default function Dashboard() {
     chartInstance.current = new Chart(ctx, {
       type: "line",
       data: {
-        labels: neonData.labels, 
+        labels: neonData.labels,
         datasets: [
           {
             label: "Avg Bump Time (Minutes)",
@@ -93,7 +109,7 @@ export default function Dashboard() {
     };
   }, [neonData]);
 
-  // --- Your Existing Filtering Logic ---
+  // --- Filtering Logic ---
   function toggleRestaurant(name) {
     setSelected((current) =>
       current.includes(name)
@@ -107,9 +123,11 @@ export default function Dashboard() {
     .map((r) => ({
       ...r,
       orders:
-        orderMethod === "kiosk" ? r.kiosk
-        : orderMethod === "mobile" ? r.mobile
-        : r.kiosk + r.mobile,
+        orderMethod === "kiosk"
+          ? r.kiosk
+          : orderMethod === "mobile"
+          ? r.mobile
+          : r.kiosk + r.mobile,
     }));
 
   const fastest = visible.length
@@ -160,11 +178,40 @@ export default function Dashboard() {
         </header>
 
         {/* Main Graph Section */}
-        <section className="dashboard-chart-box" style={{ background: "white", padding: "20px", borderRadius: "8px", marginBottom: "25px", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" }}>
-          <h2 style={{ fontSize: "1.2rem", color: "#333", marginBottom: "15px", fontFamily: "sans-serif" }}>Mobile Orders: Bump Time By Hour</h2>
-          <div className="chart-wrapper" style={{ position: "relative", height: "300px", width: "100%" }}>
-            {loading && <p style={{ textAlign: "center", padding: "40px", color: "#666" }}>Fetching your Neon database fields...</p>}
-            {error && <p style={{ color: "#ff4d4d", textAlign: "center", padding: "40px" }}>Connection Error: {error}</p>}
+        <section
+          className="dashboard-chart-box"
+          style={{
+            background: "white",
+            padding: "20px",
+            borderRadius: "8px",
+            marginBottom: "25px",
+            boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "1.2rem",
+              color: "#333",
+              marginBottom: "15px",
+              fontFamily: "sans-serif",
+            }}
+          >
+            Mobile Orders: Bump Time By Hour
+          </h2>
+          <div
+            className="chart-wrapper"
+            style={{ position: "relative", height: "300px", width: "100%" }}
+          >
+            {loading && (
+              <p style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+                Fetching your Neon database fields...
+              </p>
+            )}
+            {error && (
+              <p style={{ color: "#ff4d4d", textAlign: "center", padding: "40px" }}>
+                Connection Error: {error}
+              </p>
+            )}
             {!loading && !error && <canvas ref={chartRef}></canvas>}
           </div>
         </section>

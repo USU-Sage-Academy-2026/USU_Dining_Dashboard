@@ -1,10 +1,10 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-// https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
-  base: '/static/frontend/',
+  // Only use '/static/frontend/' when running 'npm run build' for Django
+  base: command === 'build' ? '/static/frontend/' : '/',
   build: {
     outDir: '../django_stuff/static/frontend',
     emptyOutDir: true,
@@ -12,12 +12,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '^/$': 'http://localhost:8000',
       '/accounts': 'http://localhost:8000',
       '/admin': 'http://localhost:8000',
-      '/dashboard': 'http://localhost:8000',
-      '/static': 'http://localhost:8000',
+      '^/static/(?!frontend)': 'http://localhost:8000',
       '/api': 'http://localhost:8000',
     },
   },
-})
+}))
