@@ -12,7 +12,7 @@ async function fetchJson(url) {
   return res.json();
 }
 
-export default function DiningCharts() {
+export default function DiningCharts({ selected, orderMethod }) {
   const [days, setDays] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
   const [range, setRange] = useState([0, 0]);
@@ -84,10 +84,11 @@ export default function DiningCharts() {
         tension: 0.2,
         spanGaps: true,
       };
-    });
+    })
+    .filter((d) => selected.includes(d.label));
 
     return { labels: hours, datasets };
-  }, [rows, restaurants]);
+  }, [rows, restaurants, selected]);
 
   // 2. Order volume by day, stacked by restaurant
   const volumeChartData = useMemo(() => {
@@ -106,10 +107,11 @@ export default function DiningCharts() {
         data: dayLabels.map((d) => byDay[d] || 0),
         backgroundColor: COLORS[i % COLORS.length],
       };
-    });
+    })
+    .filter((d) => selected.includes(d.label));
 
     return { labels: dayLabels, datasets };
-  }, [rows, restaurants]);
+  }, [rows, restaurants, selected]);
 
   const bumpOptions = {
     responsive: true,

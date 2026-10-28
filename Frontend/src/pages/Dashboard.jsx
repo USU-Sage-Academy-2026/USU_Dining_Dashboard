@@ -14,7 +14,8 @@ const allData = [
 const restaurantNames = allData.map((r) => r.name);
 
 export default function Dashboard() {
-  const [selected, setSelected] = useState(restaurantNames);
+  const [restaurantNames, setRestaurantNames] = useState([]);
+  const [selected, setSelected] = useState([]);
   const [orderMethod, setOrderMethod] = useState("all");
 
   // --- Database memory ---
@@ -23,6 +24,17 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
+
+    // --- Restaurant names from the database ---
+  useEffect(() => {
+    fetch("/api/order-meta/")
+      .then((res) => res.json())
+      .then((meta) => {
+        setRestaurantNames(meta.restaurants);
+        setSelected(meta.restaurants); // start with every restaurant ticked
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
   // --- Ticket calculations---
   useEffect(() => {
@@ -153,7 +165,7 @@ export default function Dashboard() {
           ))}
         </section>
 
-        <DiningCharts />
+        <DiningCharts selected={selected} orderMethod={orderMethod} />
 
         <footer className="dashboard-findings">
           <h2>Key findings</h2>
