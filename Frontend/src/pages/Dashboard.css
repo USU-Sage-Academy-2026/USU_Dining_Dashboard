@@ -1,7 +1,42 @@
 
 .dashboard-header {
+  position: relative;
   text-align: center;
   margin-bottom: 2rem;
+  padding-top: 2.75rem;
+}
+
+.dashboard-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-logout {
+  margin: 0;
+}
+
+.dashboard-logout-button {
+  border: 1px solid #0f2439;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  background: #0f2439;
+  color: #ffffff;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dashboard-logout-button:hover {
+  background: #1d3b59;
+}
+
+.dashboard-logout-button:focus-visible {
+  outline: 3px solid #60a5fa;
+  outline-offset: 2px;
 }
 
 
@@ -107,6 +142,10 @@
 }
 
 @media (max-width: 600px) {
+  .dashboard-header {
+    padding-top: 3rem;
+  }
+
   .dashboard-header h1 {
     font-size: 1.5rem;
   }

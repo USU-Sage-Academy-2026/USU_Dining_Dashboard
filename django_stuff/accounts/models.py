@@ -57,4 +57,4 @@ class Combined_Orders(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'Kiosk_Orders'
+        db_table = 'Combined_Orders'

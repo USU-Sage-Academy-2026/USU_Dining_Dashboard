@@ -1,17 +1,22 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/login";
 import Dashboard from "./pages/Dashboard";
 
-export default function App() {
+export default function App({ isAdmin }) {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Default to the login page, or go to /login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login />} />
-        
-        {/* Show the dashboard at /dashboard */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* Automatically redirect /static/frontend/ (and /) to /dashboard */}
+        <Route
+          path="/static/frontend/"
+          element={<Navigate to="/dashboard" replace />}
+        />
+
+        <Route
+          path="/login"
+          element={<Navigate to="/accounts/login/" replace />}
+        />
+
+        <Route path="/dashboard" element={<Dashboard isAdmin={isAdmin} />} />
       </Routes>
     </BrowserRouter>
   );
