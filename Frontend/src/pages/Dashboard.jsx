@@ -5,9 +5,9 @@ import Chart from "chart.js/auto";
 import "./Dashboard.css";
 
 const allData = [
-  { name: "Restaurant A", avgBumpTime: 4.2, kiosk: 70, mobile: 50 },
-  { name: "Restaurant B", avgBumpTime: 6.8, kiosk: 45, mobile: 40 },
-  { name: "Restaurant C", avgBumpTime: 3.1, kiosk: 120, mobile: 90 },
+  { name: "Subway", avgBumpTime: 4.1, kiosk: 70, mobile: 50 },
+  { name: "Chester's Chicken", avgBumpTime: 6.8, kiosk: 45, mobile: 40 },
+  { name: "Scotsman's Corner", avgBumpTime: 3.1, kiosk: 120, mobile: 90 },
 ];
 
 const defaultRestaurants = allData.map((r) => r.name);
@@ -24,6 +24,7 @@ export default function Dashboard({ isAdmin = false }) {
   const [restaurantNames, setRestaurantNames] = useState(defaultRestaurants);
   const [selected, setSelected] = useState(defaultRestaurants);
   const [orderMethod, setOrderMethod] = useState("all");
+  const [csrfToken, setCsrfToken] = useState("");
 
   // --- Database memory ---
   const [neonData, setNeonData] = useState(null);
@@ -48,9 +49,15 @@ export default function Dashboard({ isAdmin = false }) {
       .catch((err) => console.error("order-meta fetch error:", err));
   }, []);
 
-  // --- Ticket calculations ---
+// --- Ticket calculations (Re-fetches automatically whenever orderMethod or selected changes!) ---
   useEffect(() => {
-    fetch("/api/ticket-hours/")
+    setLoading(true);
+    const params = new URLSearchParams({
+      method: orderMethod,
+      restaurants: selected.join(","),
+    });
+
+    fetch(`/api/ticket-hours/?${params.toString()}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Status ${res.status}`);
         return res.json();
@@ -67,7 +74,7 @@ export default function Dashboard({ isAdmin = false }) {
         setError(err.message);
         setLoading(false);
       });
-  }, []);
+  }, [orderMethod, selected]); // <-- Added orderMethod & selected here!
 
   // --- Chart.js render ---
   useEffect(() => {
@@ -108,6 +115,10 @@ export default function Dashboard({ isAdmin = false }) {
       if (chartInstance.current) chartInstance.current.destroy();
     };
   }, [neonData]);
+
+    useEffect(() => {
+    fetch("/api/csrf/").then(() => setCsrfToken(getCsrfToken()));
+  }, []);
 
   // --- Filtering Logic ---
   function toggleRestaurant(name) {
@@ -154,6 +165,7 @@ export default function Dashboard({ isAdmin = false }) {
         onOrderMethodChange={setOrderMethod}
       />
 
+      {/* Top banner */}
       <main className="dashboard">
         <header className="dashboard-header">
           <nav className="dashboard-actions" aria-label="Account actions">
@@ -166,7 +178,7 @@ export default function Dashboard({ isAdmin = false }) {
               <input
                 type="hidden"
                 name="csrfmiddlewaretoken"
-                value={getCsrfToken()}
+                value={csrfToken}
               />
               <button className="dashboard-logout-button" type="submit">
                 Log out
@@ -176,6 +188,32 @@ export default function Dashboard({ isAdmin = false }) {
           <h1>USU Dining Dashboard</h1>
           <p>Order times across campus restaurants</p>
         </header>
+
+        {/*// Key Findings */}
+        <footer className="dashboard-findings">
+          <h2>Key findings</h2>
+          {visible.length === 0 ? (
+            <p>Select at least one restaurant to see findings.</p>
+          ) : (
+            <ul>
+              <li>
+                Fastest bump time: <strong>{fastest.name}</strong> ({fastest.avgBumpTime} min)
+              </li>
+              <li>
+                Slowest bump time: <strong>{slowest.name}</strong> ({slowest.avgBumpTime} min)
+              </li>
+              <li>
+                Busiest: <strong>{busiest.name}</strong> ({busiest.orders} orders)
+              </li>
+              <li>
+                Total orders across selected restaurants: <strong>{totalOrders}</strong>
+              </li>
+            </ul>
+          )}
+        </footer>
+
+        {/* the dining charts */}
+        <DiningCharts selected={selected} orderMethod={orderMethod} />
 
         {/* Main Graph Section */}
         <section
@@ -228,29 +266,9 @@ export default function Dashboard({ isAdmin = false }) {
           ))}
         </section>
 
-        <DiningCharts selected={selected} orderMethod={orderMethod} />
+      
 
-        <footer className="dashboard-findings">
-          <h2>Key findings</h2>
-          {visible.length === 0 ? (
-            <p>Select at least one restaurant to see findings.</p>
-          ) : (
-            <ul>
-              <li>
-                Fastest bump time: <strong>{fastest.name}</strong> ({fastest.avgBumpTime} min)
-              </li>
-              <li>
-                Slowest bump time: <strong>{slowest.name}</strong> ({slowest.avgBumpTime} min)
-              </li>
-              <li>
-                Busiest: <strong>{busiest.name}</strong> ({busiest.orders} orders)
-              </li>
-              <li>
-                Total orders across selected restaurants: <strong>{totalOrders}</strong>
-              </li>
-            </ul>
-          )}
-        </footer>
+        
       </main>
     </div>
   );

@@ -12,13 +12,17 @@ async function fetchJson(url) {
   return res.json();
 }
 
+
+
 export default function DiningCharts({ selected, orderMethod }) {
+  // state declarations
   const [days, setDays] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
   const [range, setRange] = useState([0, 0]);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [excludeOutliers, setExcludeOutliers] = useState(false);
 
   // Load the available dates and restaurant names once.
   useEffect(() => {
@@ -40,7 +44,7 @@ export default function DiningCharts({ selected, orderMethod }) {
     if (!start || !end) return;
     let cancelled = false; // ignore a slow response if the range changed again
     setLoading(true);
-    fetchJson(`/api/order-data/?start=${start}&end=${end}`)
+       fetchJson(`/api/order-data/?start=${start}&end=${end}&method=${orderMethod}&outliers=${excludeOutliers ? 'exclude' : 'include'}`)
       .then((data) => {
         if (!cancelled) {
           setRows(data);
@@ -56,8 +60,8 @@ export default function DiningCharts({ selected, orderMethod }) {
     return () => {
       cancelled = true;
     };
-  }, [start, end]);
-
+  }, [start, end, orderMethod, excludeOutliers]);
+  
   // 1. Average bump time by hour
   const bumpChartData = useMemo(() => {
     const hours = Array.from(new Set(rows.map((r) => r.hour)))
@@ -90,6 +94,8 @@ export default function DiningCharts({ selected, orderMethod }) {
     return { labels: hours, datasets };
   }, [rows, restaurants, selected]);
 
+
+  
   // 2. Order volume by day, stacked by restaurant
   const volumeChartData = useMemo(() => {
     const dayLabels = Array.from(new Set(rows.map((r) => r.date))).sort();
@@ -142,6 +148,15 @@ export default function DiningCharts({ selected, orderMethod }) {
 
       {days.length > 0 && (
         <DateRangeSlider days={days} value={range} onCommit={setRange} />
+      )}
+
+      {days.length > 0 && (
+      <button
+        type="button"
+        onClick={() => setExcludeOutliers((previous) => !previous)}
+      >
+        {excludeOutliers ? 'Include Outliers' : 'Exclude Outliers'}
+      </button>
       )}
 
       {days.length > 0 &&

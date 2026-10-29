@@ -1,6 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 
+function GoToDjango({ to }) {
+  window.location.replace(to);
+  return null;
+}
+
 export default function App({ isAdmin }) {
   return (
     <BrowserRouter>
@@ -11,10 +16,7 @@ export default function App({ isAdmin }) {
           element={<Navigate to="/dashboard" replace />}
         />
 
-        <Route
-          path="/login"
-          element={<Navigate to="/accounts/login/" replace />}
-        />
+        <Route path="/login" element={<GoToDjango to="/accounts/login/" />} />
 
         <Route path="/dashboard" element={<Dashboard isAdmin={isAdmin} />} />
       </Routes>
