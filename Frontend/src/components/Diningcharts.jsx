@@ -39,7 +39,7 @@ export default function DiningCharts({ selected, orderMethod }) {
   const start = days[range[0]];
   const end = days[range[1]];
 
-  // Load order rows whenever the date range changes.
+  // Requesting Order Data From Django
   useEffect(() => {
     if (!start || !end) return;
     let cancelled = false; // ignore a slow response if the range changed again
