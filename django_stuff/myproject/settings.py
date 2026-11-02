@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-(&__j+h+r6e#g736sugyjqv)*bh0l^*(65_7u^%19kryqf-3!n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["usu-dining-dashboard.onrender.com"]
 CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
 
 
