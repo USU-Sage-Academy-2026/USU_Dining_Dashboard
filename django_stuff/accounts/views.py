@@ -15,7 +15,7 @@ class SignUpView(CreateView):
     success_url = reverse_lazy("login")
     template_name = "registration/signup.html"
 
-# Django defning the endpoint
+# Django defning the endpoint for whats available
 def order_meta(request):
     days = (
         Combined_Orders.objects.exclude(date__isnull=True)
@@ -32,7 +32,7 @@ def order_meta(request):
         "restaurants": list(restaurants),
     })
 
-# Django defning the endpoint
+# Django defning the endpoint for the actual data
 def order_data(request):
     qs = Combined_Orders.objects.filter(
         date__isnull=False,
