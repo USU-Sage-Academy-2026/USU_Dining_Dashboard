@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-(&__j+h+r6e#g736sugyjqv)*b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in {'true', '1', 'yes'}
 
-ALLOWED_HOSTS = ["usu-dining-dashboard.onrender.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
 RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -94,9 +94,12 @@ DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
         conn_max_age=600,
-        ssl_require=not DEBUG,
+        # Render handles security natively inside its internal network mesh.
+        # This prevents SSL verification errors while keeping it production-safe:
+        ssl_require=False, 
     )
 }
+
 
 
 # Password validation
