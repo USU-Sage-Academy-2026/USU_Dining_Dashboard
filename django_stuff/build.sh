@@ -2,11 +2,20 @@
 # exit on error
 set -o errexit
 
-# Install dependencies
-pip install -r requirements.txt
+# 1. Upgrade pip to ensure seamless package installation
+pip install --upgrade pip
 
-# Collect static files
+# 2. Force install packages explicitly to bypass any caching bugs
+pip install whitenoise gunicorn dj-database-url psycopg2-binary
+
+# 3. Fallback dependency installation
+if [ -f requirements.txt ]; then
+    pip install -r requirements.txt
+fi
+
+# 4. Print installed packages to logs so we can verify the installation
+pip list
+
+# 5. Run Django tasks
 python manage.py collectstatic --noinput
-
-# Run migrations
 python manage.py migrate
