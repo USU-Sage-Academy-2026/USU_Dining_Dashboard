@@ -1,6 +1,7 @@
 # accounts/views.py
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -16,6 +17,7 @@ class SignUpView(CreateView):
     template_name = "registration/signup.html"
 
 # Django defning the endpoint for whats available
+@login_required
 def order_meta(request):
     days = (
         Combined_Orders.objects.exclude(date__isnull=True)
@@ -33,6 +35,7 @@ def order_meta(request):
     })
 
 # Django defning the endpoint for the actual data
+@login_required
 def order_data(request):
     qs = Combined_Orders.objects.filter(
         date__isnull=False,
@@ -87,3 +90,9 @@ def order_data(request):
 @ensure_csrf_cookie
 def csrf(request):
     return JsonResponse({"ok": True})
+
+
+def session_status(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"authenticated": False}, status=401)
+    return JsonResponse({"authenticated": True})

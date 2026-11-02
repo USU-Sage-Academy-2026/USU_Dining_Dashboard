@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core import mail
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 
@@ -37,6 +37,16 @@ class SignUpAndPasswordResetTests(TestCase):
             fetch_redirect_response=False,
         )
 
+    @override_settings(
+        STORAGES={
+            "default": {
+                "BACKEND": "django.core.files.storage.FileSystemStorage",
+            },
+            "staticfiles": {
+                "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            },
+        }
+    )
     def test_dashboard_renders_frontend_build(self):
         user = get_user_model().objects.create_user(
             username="dashboarduser",
@@ -63,6 +73,8 @@ class SignUpAndPasswordResetTests(TestCase):
         self.assertContains(response, 'id="root"')
         self.assertContains(response, "/static/frontend/assets/index.js")
         self.assertContains(response, "/static/frontend/assets/index.css")
+        self.assertIn("csrftoken", response.cookies)
+        self.assertIn("no-store", response.headers["Cache-Control"])
 
     def test_dashboard_redirects_anonymous_users_to_login(self):
         response = self.client.get(reverse("dashboard"))
@@ -72,6 +84,48 @@ class SignUpAndPasswordResetTests(TestCase):
             f"{reverse('login')}?next={reverse('dashboard')}",
             fetch_redirect_response=False,
         )
+
+    def test_api_session_status_requires_authentication(self):
+        response = self.client.get("/api/session/")
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(), {"authenticated": False})
+
+    def test_api_data_endpoints_require_authentication(self):
+        for endpoint in ("/api/order-meta/", "/api/order-data/"):
+            with self.subTest(endpoint=endpoint):
+                response = self.client.get(endpoint)
+                self.assertEqual(response.status_code, 302)
+
+    def test_dashboard_logout_post_ends_authenticated_session(self):
+        user = get_user_model().objects.create_user(
+            username="logoutuser",
+            password="Safe-test-password-9021",
+        )
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(user)
+
+        csrf_response = client.get("/api/csrf/")
+        csrf_token = csrf_response.cookies["csrftoken"].value
+        response = client.post(
+            reverse("logout"),
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn("_auth_user_id", client.session)
+
+    def test_api_session_status_allows_authenticated_user(self):
+        user = get_user_model().objects.create_user(
+            username="sessionuser",
+            password="Safe-test-password-9021",
+        )
+        self.client.force_login(user)
+
+        response = self.client.get("/api/session/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"authenticated": True})
 
     def test_login_redirects_to_dashboard(self):
         get_user_model().objects.create_user(

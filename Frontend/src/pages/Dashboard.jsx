@@ -120,6 +120,25 @@ export default function Dashboard({ isAdmin = false }) {
     fetch("/api/csrf/").then(() => setCsrfToken(getCsrfToken()));
   }, []);
 
+  useEffect(() => {
+    function logoutOnPageHide() {
+      const token = getCsrfToken();
+      if (!token) return;
+
+      fetch("/accounts/logout/", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "X-CSRFToken": token,
+        },
+        keepalive: true,
+      });
+    }
+
+    window.addEventListener("pagehide", logoutOnPageHide);
+    return () => window.removeEventListener("pagehide", logoutOnPageHide);
+  }, []);
+
   // --- Filtering Logic ---
   function toggleRestaurant(name) {
     setSelected((current) =>
