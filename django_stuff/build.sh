@@ -19,3 +19,9 @@ pip list
 # 5. Run Django tasks
 python manage.py collectstatic --noinput
 python manage.py migrate
+
+# Inside build.sh
+cd Frontend          # <-- Make sure this is lowercase 'frontend'
+npm install
+npm run build
+cd ..
