@@ -21,6 +21,7 @@ python manage.py collectstatic --noinput
 python manage.py migrate
 
 # Inside build.sh
+cd ..
 cd Frontend          # <-- Make sure this is lowercase 'frontend'
 npm install
 npm run build
