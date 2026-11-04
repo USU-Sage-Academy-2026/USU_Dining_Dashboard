@@ -42,7 +42,7 @@ export default function DiningCharts({ days, restaurants, selected, orderMethod,
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [excludeOutliers, setExcludeOutliers] = useState(false);
+  const [excludeOutliers, setExcludeOutliers] = useState(true);
 
   const start = days[range[0]];
   const end = days[range[1]];
