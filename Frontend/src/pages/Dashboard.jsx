@@ -45,30 +45,66 @@ export default function Dashboard({ isAdmin = false }) {
   }, []);
 
   useEffect(() => {
-    fetch("/api/csrf/").then(() => setCsrfToken(getCsrfToken())).catch(() => {});
+    if (!neonData || !chartRef.current) return;
+
+    // Destroys old charts during hot-reloads to avoid drawing glitches
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    const ctx = chartRef.current.getContext("2d");
+    chartInstance.current = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: neonData.labels,
+        datasets: [
+          {
+            label: "Avg Bump Time (Minutes)",
+            data: neonData.values,
+            borderColor: "rgb(54, 162, 235)",
+            backgroundColor: "rgba(54, 162, 235, 0.2)",
+            tension: 0.3,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: "Minutes" } },
+          x: { title: { display: true, text: "Hour of Day" } },
+        },
+      },
+    });
+
+    return () => {
+      if (chartInstance.current) chartInstance.current.destroy();
+    };
+  }, [neonData]);
+
+    useEffect(() => {
+    fetch("/api/csrf/").then(() => setCsrfToken(getCsrfToken()));
   }, []);
 
-  const summary = useMemo(() => {
-    const totalOrders = rows.reduce((sum, row) => sum + (Number(row.orders) || 0), 0);
-    const bumpRows = rows.filter((row) => row.bumpMinutes !== null && row.bumpMinutes !== undefined);
-    const bumpOrderCount = bumpRows.reduce((sum, row) => sum + (Number(row.orders) || 0), 0);
-    const weightedBumpTotal = bumpRows.reduce(
-      (sum, row) => sum + (Number(row.orders) || 0) * Number(row.bumpMinutes),
-      0,
-    );
-    const restaurantTotals = new Map();
-    rows.forEach((row) => {
-      const current = restaurantTotals.get(row.restaurant) || 0;
-      restaurantTotals.set(row.restaurant, current + (Number(row.orders) || 0));
-    });
-    const busiest = [...restaurantTotals.entries()].sort((a, b) => b[1] - a[1])[0];
-    return {
-      totalOrders,
-      averageBump: bumpOrderCount ? weightedBumpTotal / bumpOrderCount : null,
-      busiest,
-      activeRestaurants: restaurantTotals.size,
-    };
-  }, [rows]);
+  useEffect(() => {
+    function logoutOnPageHide() {
+      const token = getCsrfToken();
+      if (!token) return;
+
+      fetch("/accounts/logout/", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "X-CSRFToken": token,
+        },
+        keepalive: true,
+      });
+    }
+
+    window.addEventListener("pagehide", logoutOnPageHide);
+    return () => window.removeEventListener("pagehide", logoutOnPageHide);
+  }, []);
 
   function toggleRestaurant(name) {
     setSelected((current) => current.includes(name)

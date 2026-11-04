@@ -4,6 +4,8 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 
 FRONTEND_MANIFEST_PATH = (
@@ -18,6 +20,8 @@ def home(request):
 
 
 @login_required
+@ensure_csrf_cookie
+@never_cache
 def dashboard(request):
     try:
         manifest = json.loads(FRONTEND_MANIFEST_PATH.read_text())

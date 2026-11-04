@@ -3,6 +3,7 @@ import statistics
 
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import CreateView
@@ -16,7 +17,8 @@ class SignUpView(CreateView):
     success_url = reverse_lazy("login")
     template_name = "registration/signup.html"
 
-
+# Django defning the endpoint for whats available
+@login_required
 def order_meta(request):
     """Return filter options sourced directly from the database."""
     days = (
@@ -36,7 +38,8 @@ def order_meta(request):
         "restaurants": list(restaurants),
     })
 
-
+# Django defning the endpoint for the actual data
+@login_required
 def order_data(request):
     """Return order totals and weighted bump-time metrics for dashboard filters."""
     # Keep rows with a valid order count for order-volume charts, even if aparticular row does not have a bump-time measurement.
@@ -135,3 +138,9 @@ def order_data(request):
 @ensure_csrf_cookie
 def csrf(request):
     return JsonResponse({"ok": True})
+
+
+def session_status(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"authenticated": False}, status=401)
+    return JsonResponse({"authenticated": True})
