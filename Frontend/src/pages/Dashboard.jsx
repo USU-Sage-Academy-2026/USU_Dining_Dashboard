@@ -44,44 +44,44 @@ export default function Dashboard({ isAdmin = false }) {
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    if (!neonData || !chartRef.current) return;
+  // useEffect(() => {
+  //   if (!neonData || !chartRef.current) return;
 
-    // Destroys old charts during hot-reloads to avoid drawing glitches
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-    }
+  //   // Destroys old charts during hot-reloads to avoid drawing glitches
+  //   if (chartInstance.current) {
+  //     chartInstance.current.destroy();
+  //   }
 
-    const ctx = chartRef.current.getContext("2d");
-    chartInstance.current = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: neonData.labels,
-        datasets: [
-          {
-            label: "Avg Bump Time (Minutes)",
-            data: neonData.values,
-            borderColor: "rgb(54, 162, 235)",
-            backgroundColor: "rgba(54, 162, 235, 0.2)",
-            tension: 0.3,
-            fill: true,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { beginAtZero: true, title: { display: true, text: "Minutes" } },
-          x: { title: { display: true, text: "Hour of Day" } },
-        },
-      },
-    });
+  //   const ctx = chartRef.current.getContext("2d");
+  //   chartInstance.current = new Chart(ctx, {
+  //     type: "line",
+  //     data: {
+  //       labels: neonData.labels,
+  //       datasets: [
+  //         {
+  //           label: "Avg Bump Time (Minutes)",
+  //           data: neonData.values,
+  //           borderColor: "rgb(54, 162, 235)",
+  //           backgroundColor: "rgba(54, 162, 235, 0.2)",
+  //           tension: 0.3,
+  //           fill: true,
+  //         },
+  //       ],
+  //     },
+  //     options: {
+  //       responsive: true,
+  //       maintainAspectRatio: false,
+  //       scales: {
+  //         y: { beginAtZero: true, title: { display: true, text: "Minutes" } },
+  //         x: { title: { display: true, text: "Hour of Day" } },
+  //       },
+  //     },
+  //   });
 
-    return () => {
-      if (chartInstance.current) chartInstance.current.destroy();
-    };
-  }, [neonData]);
+  //   return () => {
+  //     if (chartInstance.current) chartInstance.current.destroy();
+  //   };
+  // }, [neonData]);
 
     useEffect(() => {
     fetch("/api/csrf/").then(() => setCsrfToken(getCsrfToken()));
@@ -111,6 +111,37 @@ export default function Dashboard({ isAdmin = false }) {
       ? current.filter((item) => item !== name)
       : [...current, name]);
   }
+
+  const summary = useMemo(() => {
+    const filteredRows = rows.filter((row) => selected.includes(row.restaurant));
+    const totalOrders = filteredRows.reduce(
+      (total, row) => total + (Number(row.orders) || 0),
+      0,
+    );
+    const weightedBumpTotal = filteredRows.reduce((total, row) => {
+      const orders = Number(row.orders) || 0;
+      const bumpMinutes = Number(row.bumpMinutes);
+      return total + (Number.isFinite(bumpMinutes) ? orders * bumpMinutes : 0);
+    }, 0);
+    const ordersByRestaurant = new Map();
+
+    filteredRows.forEach((row) => {
+      ordersByRestaurant.set(
+        row.restaurant,
+        (ordersByRestaurant.get(row.restaurant) || 0) + (Number(row.orders) || 0),
+      );
+    });
+
+    const busiest = [...ordersByRestaurant.entries()]
+      .sort((a, b) => b[1] - a[1])[0] || null;
+
+    return {
+      totalOrders,
+      averageBump: totalOrders ? weightedBumpTotal / totalOrders : null,
+      busiest,
+      activeRestaurants: [...ordersByRestaurant.values()].filter((orders) => orders > 0).length,
+    };
+  }, [rows, selected]);
 
   return (
     <div className="dashboard-layout">
