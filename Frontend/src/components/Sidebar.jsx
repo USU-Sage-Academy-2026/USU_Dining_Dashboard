@@ -16,6 +16,8 @@ export default function Sidebar({
   ];
 
   return (
+    <aside style={{ position: 'sticky', top: 0, height: '100vh' }}>
+  {
     <aside className="sidebar">
       <div className="sidebar-brand">
         <div className="sidebar-brand-mark">A</div>
@@ -69,5 +71,7 @@ export default function Sidebar({
         <span className="status-dot" /> Filters are applied to database queries
       </div>
     </aside>
+}
+</aside>
   );
 }
