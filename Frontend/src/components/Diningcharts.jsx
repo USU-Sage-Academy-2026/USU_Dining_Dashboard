@@ -39,7 +39,7 @@ const baseOptions = {
 export default function DiningCharts({ days, restaurants, selected, orderMethod, onRowsChange }) {
   const [range, setRange] = useState(() => {
     const last = Math.max(0, days.length - 1);
-    return [Math.max(0, last - 6), last];
+    return [0, last];
   });
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
