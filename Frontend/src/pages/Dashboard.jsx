@@ -3,6 +3,7 @@ import Sidebar from "../components/Sidebar";
 import DiningCharts from "../components/Diningcharts";
 import "./Dashboard.css";
 
+// helper function to get the CSRF token from cookies
 function getCsrfToken() {
   const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
   return match ? decodeURIComponent(match[1]) : "";
@@ -10,6 +11,7 @@ function getCsrfToken() {
 
 const numberFormat = new Intl.NumberFormat("en-US");
 
+// these are the state declarations and the main component for the dashboard. It fetches metadata about restaurants and days, manages selected restaurants and order methods, and renders the sidebar and dining charts. It also handles CSRF token management and logout on page hide.
 export default function Dashboard({ isAdmin = false }) {
   const [restaurantNames, setRestaurantNames] = useState([]);
   const [selected, setSelected] = useState([]);

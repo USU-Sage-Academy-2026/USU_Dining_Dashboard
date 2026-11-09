@@ -48,10 +48,10 @@ def order_data(request):
         number_of_orders__isnull=False,
         restaurant__isnull=False,
         time_period_hour__isnull=False,
-    )
+    ) # Django ORM query to filter the Combined_Orders model for valid rows
 
     start = request.GET.get("start")
-    end = request.GET.get("end")
+    end = request.GET.get("end") # the query parameters defined in react through the URL is accessed here to filter the data based on the start and end dates provided by the user
     if start:
         orders_qs = orders_qs.filter(date__gte=start)
     if end:
@@ -64,7 +64,7 @@ def order_data(request):
     # React sends one query parameter per selected restaurant. If the
     # parameter is present but empty, return no rows rather than all restaurants.
     if "restaurants" in request.GET:
-        selected_restaurants = [name for name in request.GET.getlist("restaurants") if name]
+        selected_restaurants = [name for name in request.GET.getlist("restaurants") if name] # getList gets all the restaurant names instead of just one value
         if len(selected_restaurants) == 1 and "," in selected_restaurants[0]:
             selected_restaurants = [name for name in selected_restaurants[0].split(",") if name]
         if not selected_restaurants:
@@ -87,8 +87,8 @@ def order_data(request):
 
     group_fields = ("date", "time_period_hour_id", "restaurant__restaurant")
     order_groups = (
-        orders_qs.values(*group_fields)
-        .annotate(orders=Sum("number_of_orders"))
+        orders_qs.values(*group_fields) #groups the records
+        .annotate(orders=Sum("number_of_orders")) # calculates the totals
         .order_by("date", "time_period_hour_id", "restaurant__restaurant")
     )
 

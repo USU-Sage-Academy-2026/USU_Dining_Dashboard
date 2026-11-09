@@ -6,6 +6,7 @@ import "./Diningcharts.css";
 
 const COLORS = ["#0F2439", "#2D6A9F", "#C69214", "#5B829E", "#8C6D31", "#6F8796", "#B7A16A"];
 
+// Helper function to fetch JSON data from a given URL, handle errors, and return a JSON response
 async function fetchJson(url) {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Data request failed (${response.status})`);
@@ -34,6 +35,7 @@ const baseOptions = {
   },
 };
 
+// These are the state declarations and the main component for the dining charts. It fetches data based on selected restaurants, date range, and order method, and renders three different charts: orders by hour, average bump time by hour, and order volume by day. The component also handles loading states, errors, and outlier exclusion toggling.
 export default function DiningCharts({ days, restaurants, selected, orderMethod, onRowsChange }) {
   const [range, setRange] = useState(() => {
     const last = Math.max(0, days.length - 1);
