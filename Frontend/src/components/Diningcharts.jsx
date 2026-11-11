@@ -36,7 +36,7 @@ const baseOptions = {
 };
 
 // These are the state declarations and the main component for the dining charts. It fetches data based on selected restaurants, date range, and order method, and renders three different charts: orders by hour, average bump time by hour, and order volume by day. The component also handles loading states, errors, and outlier exclusion toggling.
-export default function DiningCharts({ days, restaurants, selected, orderMethod, onRowsChange }) {
+export default function DiningCharts({ days, restaurants, selected, orderMethod, onRowsChange }) { // selected is part of the props and can now be used in this file
   const [range, setRange] = useState(() => {
     const last = Math.max(0, days.length - 1);
     return [0, last];
@@ -74,14 +74,14 @@ export default function DiningCharts({ days, restaurants, selected, orderMethod,
       });
 
     return () => { cancelled = true; };
-  }, [start, end, orderMethod, selected, excludeOutliers, onRowsChange]);
+  }, [start, end, orderMethod, selected, excludeOutliers, onRowsChange]); // selected is in the dependency array so it re-fetches data whenever the selected restaurants change
 
-  const visibleRestaurants = useMemo(
-    () => restaurants.filter((name) => selected.includes(name)),
-    [restaurants, selected],
+  const visibleRestaurants = useMemo( 
+    () => restaurants.filter((name) => selected.includes(name)), // For every restaurant in the restaurants array, check whether its name is also in the selected array. If it is, keep it. If not, leave it out
+    [restaurants, selected], // useMemo stores the computed value of visibleRestaurants and only recalculates it when restaurants or selected change, improving performance by avoiding unnecessary recalculations on every render.
   );
 
-  const bumpChartData = useMemo(() => {
+  const bumpChartData = useMemo(() => { // useMemo stores the computed value of bumpChartData and only recalculates it when rows or visibleRestaurants change, improving performance by avoiding unnecessary recalculations on every render.
     const hours = [...new Set(rows.map((row) => Number(row.hour)))].sort((a, b) => a - b);
     const datasets = visibleRestaurants.map((name, index) => {
       const buckets = new Map();
@@ -109,7 +109,7 @@ export default function DiningCharts({ days, restaurants, selected, orderMethod,
     return { labels: hours.map(hourLabel), datasets };
   }, [rows, visibleRestaurants]);
 
-  const ordersByHourData = useMemo(() => {
+  const ordersByHourData = useMemo(() => { // useMemo stores the result of this calculation
     const hours = [...new Set(rows.map((row) => Number(row.hour)))].sort((a, b) => a - b);
     const datasets = visibleRestaurants.map((name, index) => {
       const totals = new Map();

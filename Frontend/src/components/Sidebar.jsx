@@ -1,8 +1,9 @@
 import "./Sidebar.css";
 
 export default function Sidebar({
+  // these are the 7 props Sidebar receives from Dashboard. Sidebar doesn't receive these from Django but from the parent component Dashboard.
   restaurantNames = [],
-  selected = [],
+  selected = [], // The selected prop is updated by the parent component using useState
   onToggleRestaurant,
   onSelectAll,
   onClearAll,
@@ -39,11 +40,14 @@ export default function Sidebar({
             <button type="button" onClick={onClearAll}>Clear</button>
           </div>
         </div>
+
+        // the most important part of sidebar component
         {restaurantNames.length === 0 ? (
           <p className="sidebar-empty">No restaurants returned by the database.</p>
-        ) : restaurantNames.map((name) => (
+        ) : restaurantNames.map((name) => ( // creates a checkbox for each restaurant name
           <label key={name} className="sidebar-option">
             <input type="checkbox" checked={selected.includes(name)} onChange={() => onToggleRestaurant(name)} />
+            // calling onToggleRestaurant here runs toggleRestaurant function from Dashboard.jsx
             <span>{name}</span>
           </label>
         ))}

@@ -14,7 +14,7 @@ const numberFormat = new Intl.NumberFormat("en-US");
 // these are the state declarations and the main component for the dashboard. It fetches metadata about restaurants and days, manages selected restaurants and order methods, and renders the sidebar and dining charts. It also handles CSRF token management and logout on page hide.
 export default function Dashboard({ isAdmin = false }) {
   const [restaurantNames, setRestaurantNames] = useState([]);
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState([]); // dashboard owns the state and sets it here
   const [orderMethod, setOrderMethod] = useState("all");
   const [csrfToken, setCsrfToken] = useState("");
   const [days, setDays] = useState([]);
@@ -22,6 +22,8 @@ export default function Dashboard({ isAdmin = false }) {
   const [metaLoading, setMetaLoading] = useState(true);
   const [metaError, setMetaError] = useState("");
 
+
+  // first useEffect fetches the restaurant names and available days from the backend API when the component mounts. It updates the state with the fetched data or sets an error message if the request fails.
   useEffect(() => {
     let cancelled = false;
     fetch("/api/order-meta/")
@@ -44,7 +46,7 @@ export default function Dashboard({ isAdmin = false }) {
         }
       });
     return () => { cancelled = true; };
-  }, []);
+  }, []); // empty dependency array means this runs once on mount
 
   // useEffect(() => {
   //   if (!neonData || !chartRef.current) return;
@@ -108,10 +110,10 @@ export default function Dashboard({ isAdmin = false }) {
     return () => window.removeEventListener("pagehide", logoutOnPageHide);
   }, []);
 
-  function toggleRestaurant(name) {
-    setSelected((current) => current.includes(name)
-      ? current.filter((item) => item !== name)
-      : [...current, name]);
+  function toggleRestaurant(name) { // this functions runs from onToggleRestaurant in Sidebar.jsx
+    setSelected((current) => current.includes(name) // this asks if the current selection already includes the restaurant, and setSelected updates the state accordingly
+      ? current.filter((item) => item !== name) // if it does, it removes the restaurant from the selection
+      : [...current, name]); // if it doesn't, it adds the restaurant to the selection
   }
 
   const summary = useMemo(() => {
@@ -148,9 +150,10 @@ export default function Dashboard({ isAdmin = false }) {
   return (
     <div className="dashboard-layout">
       <Sidebar
+      // here are the 7 props that Dashboard passes to Sidebar. These include the list of restaurant names, the currently selected restaurants, and functions to toggle selection, select all, clear all, and change the order method.
         restaurantNames={restaurantNames}
         selected={selected}
-        onToggleRestaurant={toggleRestaurant}
+        onToggleRestaurant={toggleRestaurant} // props that toggles the selection of a restaurant in the sidebar
         onSelectAll={() => setSelected(restaurantNames)}
         onClearAll={() => setSelected([])}
         orderMethod={orderMethod}
