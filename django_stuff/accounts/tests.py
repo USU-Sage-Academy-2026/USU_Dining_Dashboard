@@ -20,8 +20,11 @@ class SignUpAndPasswordResetTests(TestCase):
     def test_home_redirects_authenticated_users_to_dashboard(self):
         response = self.client.get(reverse("home"))
 
-        self.assertNotContains(response, "View dashboard")
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(
+            response,
+            reverse("login"),
+            fetch_redirect_response=False,
+        )
 
         user = get_user_model().objects.create_user(
             username="homeuser",
